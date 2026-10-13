@@ -71,7 +71,46 @@ let currentLesson=1,quizWords=[],qIndex=0,score=0,answered=false;
 function save(){localStorage.setItem("mandarinpath-v1",JSON.stringify(data));renderStats()}
 function toast(msg){let t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",1800)}
 function showPage(id){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id||(id==="lesson"&&b.dataset.page==="lessons")));if(id==="home")renderHome();if(id==="lessons")renderLessons();if(id==="characters")renderVocab();if(id==="review")renderReview();window.scrollTo(0,0)}
-function speak(text){if(!("speechSynthesis"in window)){toast("Speech playback isn't available in this browser.");return}speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang="zh-CN";u.rate=.82;let vs=speechSynthesis.getVoices();let v=vs.find(v=>v.lang==="zh-CN"||v.lang==="zh_CN");if(v)u.voice=v;speechSynthesis.speak(u)}
+function speak(text){
+  if(!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)){
+    toast("Audio isn't supported here. Open MandarinPath in Safari.");
+    return;
+  }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const play = () => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN";
+    u.rate = 0.78;
+    u.volume = 1;
+    const voices = synth.getVoices();
+    const voice = voices.find(v => /^zh(-|_)?CN$/i.test(v.lang))
+      || voices.find(v => /^zh/i.test(v.lang));
+    if (voice) u.voice = voice;
+    u.onstart = () => {};
+    u.onerror = (event) => {
+      if (event.error !== "canceled" && event.error !== "interrupted") {
+        toast("Couldn't play audio. Check silent mode/volume, then try again.");
+      }
+    };
+    synth.speak(u);
+  };
+  // iOS Safari may not have populated its voice list until voiceschanged fires.
+  const voices = synth.getVoices();
+  if (voices.length) {
+    play();
+  } else {
+    let done = false;
+    const fallback = () => {
+      if (done) return;
+      done = true;
+      synth.removeEventListener("voiceschanged", fallback);
+      play();
+    };
+    synth.addEventListener("voiceschanged", fallback);
+    setTimeout(fallback, 900);
+  }
+}
 function phraseHTML(w){return `<div class="phrase"><div class="phrase-main"><div class="hanzi">${w[0]}</div><div class="meaning">${w[1]} · ${w[2]}</div></div><button class="audio" onclick="speak(${JSON.stringify(w[0]).replace(/</g,"\\u003c")})" aria-label="Hear ${w[0]}">🔊</button><button class="quiet small" onclick="toggleReview(${JSON.stringify(w[0])})" title="Add or remove from review">${data.review.includes(w[0])?"★":"☆"}</button></div>`}
 function renderHome(){renderStats();let d=lessons[0].words[0];document.getElementById("daily").innerHTML=phraseHTML(d)}
 function renderStats(){let words=allWords();let pct=Math.round(data.completed.length/lessons.length*100);document.getElementById("learned").textContent=data.learned.length;document.getElementById("streak").textContent=data.streak||0;document.getElementById("xp").textContent=data.xp;document.getElementById("percent").textContent=pct+"%";document.getElementById("bar").style.width=pct+"%";document.getElementById("statWords").textContent=data.learned.length;document.getElementById("statLessons").textContent=data.completed.length;document.getElementById("statXP").textContent=data.xp}
