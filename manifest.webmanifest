@@ -1,0 +1,37 @@
+{
+  "id": "./",
+  "name": "MandarinPath — Learn Mandarin",
+  "short_name": "MandarinPath",
+  "description": "A free, ad-free Mandarin learning app with lessons, quizzes, vocabulary and pronunciation.",
+  "lang": "en-CA",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#071225",
+  "theme_color": "#081426",
+  "categories": [
+    "education",
+    "learning"
+  ],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
